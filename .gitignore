@@ -1,1 +1,14 @@
+.DS_Store
+cache/
 .env
+
+testing.*
+test.*
+
+
+
+
+
+# exif-tools
+
+*.bak
