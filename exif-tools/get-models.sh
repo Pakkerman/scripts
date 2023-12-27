@@ -4,10 +4,7 @@
 # https://github.com/civitai/civitai/wiki/REST-API-Reference#get-apiv1models-versionsby-hashhash
 
 file="$1"
-if [ ! -f "$file" ]; then
-    echo "need a file path"
-    exit 1
-fi
+[ ! -f "$file" ] && echo "Invalid file" && exit 1
 
 # Get the directory path of the script
 dir=$(dirname "$0")
@@ -20,10 +17,12 @@ if [ -z "$(jq '.' "$filepath_json")" ]; then
 fi
 
 
-# getting hashes
-user_comment=$(exiftool -b -UserComment "$file")
-# get hashes from the file's user comment
-json=$(echo "$user_comment" | jq -c '{
+# getting metadata from png
+json_string=$("$dir"/get-comment.sh "$file")
+
+
+# get hashes from metadata
+json=$(echo "$json_string" | jq -c '{
     "baseModel": {
         "hash": .baseModel.hash
     },
@@ -40,7 +39,6 @@ hash_values=($(echo "$json" | jq -r '.baseModel.hash, .lora[].hash'))
 json_array=()
 
 
-
 for hash_value in "${hash_values[@]}"; do
     model_info=$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '.[$key]' | jq '.'))
     object=$model_info
@@ -49,7 +47,8 @@ for hash_value in "${hash_values[@]}"; do
     if [[ "$model_info" == "null" ]]; then
         # fetch data from civitai.com
         echo "fetching model info from civitai.com via hash"
-        response=$(curl -s -X GET "https://civitai.com/api/v1/model-versions/by-hash/$hash_value" | jq '.')
+        response=$(curl -X GET "https://civitai.com/api/v1/model-versions/by-hash/$hash_value" | jq '.')
+        echo "$response"
         # parse response
         object=$(echo "$response" | jq '{
             "name": .model.name,
@@ -62,10 +61,9 @@ for hash_value in "${hash_values[@]}"; do
     fi
     
     echo $(jq --arg key "$hash_value" --argjson value "$object" '. + { ($key): $value }' "$filepath_json") > "$filepath_json"
-    # echo $(cat "$filepath_json" | jq --arg key "$hash_value" --argjson value "$object" '. + { ($key): $value }' | jq '.') > "$filepath_json"
     
-    
-    json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '{"modelVersionId":.[$key].modelVersionId, "type": .[$key].type }' | jq '.'))")
+    # json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '{"modelVersionId":.[$key].modelVersionId, "type": .[$key].type }' | jq '.'))")
+    json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '.[$key]'))")
     
 done
 
