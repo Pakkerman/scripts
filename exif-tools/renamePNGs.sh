@@ -2,14 +2,21 @@
 ### This script is aimed to make rename file in a single click
 ### Script will take a directory and name all files inside in order from 0000 to 9999
 
+
 path="$1"
+dir=$(dirname "$1")
+base=$(basename "$1")
+
+echo "dir: $dir"
+echo "base: $base"
+
 echo "$path"
 cd "$path" || exit 1
 
 [ $? -ne 0 ] && echo "The user canceled the dialog or the script returned an empty value." && exit 1
 
 
-read -rp "Rename files in \"${PWD##*/}\"? (y/n)" confirm
+read -rp "Rename files in \"$base\" ? (y/n)" confirm
 case "$confirm" in
     [yY] | [yY][eE][sS] | "" ) echo "Continuing (y)" ;;
     [nN] | [nN][oO]) echo "Canceled (n)" ; exit ;;
@@ -19,7 +26,7 @@ esac
 
 read -rp "Set prefix (press enter to use folder as the prefix):  " prefix
 case "$prefix" in
-    "") fileprefix=${PWD##*/}- ;;
+    "") fileprefix=$base- ;;
     *) fileprefix="$prefix-" ;;
 esac
 
@@ -27,6 +34,7 @@ echo "Using \"$fileprefix\" as prefix..."
 
 
 # rename to temp else to prevent conflict
+
 files=("$path"/*.png)
 idx=0
 for file in "${files[@]}"; do

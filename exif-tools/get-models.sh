@@ -54,7 +54,8 @@ for hash_value in "${hash_values[@]}"; do
             "name": .model.name,
             "version": .name,
             "type" : .model.type,
-            "modelVersionId" : .id
+            "modelVersionId" : .id,
+            "poi": .model.poi
         }' | jq -a '.')
         
         model_info="$object"
