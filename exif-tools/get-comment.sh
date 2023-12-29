@@ -9,6 +9,4 @@ start="${metadata#*\{}"             # get text starting from the first "{"
 end="${start%\}*}"                  # until the last "}"
 json_string="{$end}"
 
-echo "$json_string" > log.txt
-
 echo "$json_string"

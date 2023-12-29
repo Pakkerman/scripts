@@ -53,7 +53,8 @@ for png in "${files[@]}"; do
     ')
     
     # set user comment
-    parsedModelInfo=$(echo "$models" | jq -r -c '[.[] | select(.poi == false) | {type, modelVersionId}]')
+    parsedModelInfo=$(echo "$models" | jq -r -c '[.[] | select(.type == "LORA") | select(.poi == false) | {type, modelVersionId}]')
+    
     exiv2 -M "set Exif.Photo.UserComment $user_comment $parsedModelInfo" "$jpg"
     
     ((count++))
@@ -68,8 +69,6 @@ mkdir "$directory"/jpg
 for jpg in "${jpgs[@]}"; do
     mv "$jpg" "$directory"/jpg
 done
-
-
 
 
 # make slides
