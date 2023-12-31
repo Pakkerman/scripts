@@ -44,12 +44,9 @@ for hash_value in "${hash_values[@]}"; do
     object=$model_info
     
     # check if model is already in models.json
-    if [[ "$model_info" == "null" ]]; then
+    if [ "$object" == "null" ]; then
         # fetch data from civitai.com
-        echo "fetching model info from civitai.com via hash"
         response=$(curl -X GET "https://civitai.com/api/v1/model-versions/by-hash/$hash_value" | jq '.')
-        echo "$response"
-        # parse response
         object=$(echo "$response" | jq '{
             "name": .model.name,
             "version": .name,
@@ -57,18 +54,14 @@ for hash_value in "${hash_values[@]}"; do
             "modelVersionId" : .id,
             "poi": .model.poi
         }' | jq -a '.')
-        
-        model_info="$object"
     fi
     
     echo $(jq --arg key "$hash_value" --argjson value "$object" '. + { ($key): $value }' "$filepath_json") > "$filepath_json"
-    
-    # json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '{"modelVersionId":.[$key].modelVersionId, "type": .[$key].type }' | jq '.'))")
     json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '.[$key]'))")
     
+    # json_array+=("$(echo $(cat "$filepath_json" | jq --arg key "$hash_value" '{"modelVersionId":.[$key].modelVersionId, "type": .[$key].type }' | jq '.'))")
+    
 done
-
-
 
 echo "${json_array[@]}" | jq -s -c '.'
 

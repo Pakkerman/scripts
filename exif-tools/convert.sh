@@ -9,10 +9,6 @@ working_dir=$(dirname "$0")
 target_dir=$(dirname "$1")
 target_base=$(basename "$1")
 
-echo "working dir: $working_dir"
-echo "target dir: $target_dir"
-echo "target base: $target_base"
-
 # rename files
 echo "Renaming all files"
 "$working_dir"/renamePNGs.sh "$1"
@@ -72,4 +68,10 @@ done
 
 
 # make slides
+read -rp "Make slides? (Y/n)" confirm
+case "$confirm" in
+    [yY] | [yY][eE][sS] | "" ) echo "Continuing (y)" ;;
+    [nN] | [nN][oO]) echo "Canceled (n)" ; exit ;;
+    *) echo "Invalid input."; exit ;;
+esac
 "$dir"/make-slides.sh "$1"
